@@ -6,6 +6,7 @@ const connectDB = require("./config/db");
 const newsRoutes = require("./routes/newsRoutes");
 const fmpRoutes = require("./routes/fmpRoutes");
 const watchlistRoutes = require("./routes/watchlistRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,6 +49,7 @@ app.use(express.json());
 app.use("/api", newsRoutes);
 app.use("/api", fmpRoutes);
 app.use("/api", watchlistRoutes);
+app.use("/api/chat", chatRoutes);
 
 // 404 fallback
 app.use((req, res) => {
