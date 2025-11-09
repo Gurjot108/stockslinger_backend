@@ -4,6 +4,18 @@ require("dotenv").config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// --- Helper: Clean Gemini Markdown ---
+function sanitizeGeminiText(text) {
+  if (!text) return "";
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1") // remove **bold**
+    .replace(/\*(.*?)\*/g, "$1") // remove *italic*
+    .replace(/#+\s?/g, "") // remove # headings
+    .replace(/[-•]\s*/g, "• ") // normalize bullet points
+    .replace(/\n{2,}/g, "\n") // collapse multiple newlines
+    .trim();
+}
+
 async function getStockInfo(symbol) {
   try {
     const response = await axios.get(
@@ -52,7 +64,8 @@ exports.getGeminiResponse = async (req, res) => {
     });
 
     const reply = result.response.text();
-    res.json({ reply });
+    const cleanReply = sanitizeGeminiText(reply);
+    res.json({ reply: cleanReply });
   } catch (err) {
     console.error("🚨 Gemini API error:", err);
     res
