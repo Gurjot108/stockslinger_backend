@@ -1,11 +1,9 @@
-// controllers/chatController.js
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require("axios");
 require("dotenv").config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Helper to fetch stock info (optional)
 async function getStockInfo(symbol) {
   try {
     const response = await axios.get(
@@ -13,7 +11,6 @@ async function getStockInfo(symbol) {
     );
     const data = response.data.quoteResponse.result[0];
     if (!data) return null;
-
     return {
       name: data.shortName,
       price: data.regularMarketPrice,
@@ -25,7 +22,6 @@ async function getStockInfo(symbol) {
   }
 }
 
-// Main chat handler
 exports.getGeminiResponse = async (req, res) => {
   try {
     const { query } = req.body;
@@ -33,8 +29,7 @@ exports.getGeminiResponse = async (req, res) => {
       return res.status(400).json({ error: "Missing query" });
     }
 
-    // Build context
-    let context = "You are a friendly financial assistant.";
+    let context = "You are a friendly and concise financial assistant.";
     const match = query.match(/\b[A-Z]{2,5}\b/);
     if (match) {
       const stock = await getStockInfo(match[0]);
@@ -45,14 +40,23 @@ exports.getGeminiResponse = async (req, res) => {
       }
     }
 
-    // Generate response from Gemini
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(`${context}\n\nUser: ${query}`);
-    const reply = result.response.text();
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: `${context}\n\nUser: ${query}` }],
+        },
+      ],
+    });
+
+    const reply = result.response.text();
     res.json({ reply });
   } catch (err) {
-    console.error("Gemini API error:", err);
-    res.status(500).json({ error: "Failed to fetch Gemini response" });
+    console.error("🚨 Gemini API error:", err);
+    res
+      .status(500)
+      .json({ error: err.message || "Failed to fetch Gemini response" });
   }
 };
