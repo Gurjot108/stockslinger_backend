@@ -7,7 +7,7 @@ const newsRoutes = require("./routes/newsRoutes");
 const fmpRoutes = require("./routes/fmpRoutes");
 const watchlistRoutes = require("./routes/watchlistRoutes");
 const chatRoutes = require("./routes/chatRoutes");
-const recommendRoutes = require("./routes/recommendRoutes");
+//const recommendRoutes = require("./routes/recommendRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,7 +51,7 @@ app.use("/api", newsRoutes);
 app.use("/api", fmpRoutes);
 app.use("/api", watchlistRoutes);
 app.use("/api/chat", chatRoutes);
-app.use("/api/recommend", recommendRoutes);
+//app.use("/api/recommend", recommendRoutes);
 
 // 404 fallback
 app.use((req, res) => {
