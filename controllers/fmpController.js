@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 const FMP_API_KEY = process.env.FMP_API_KEY;
-const FMP_BASE_URL = "https://financialmodelingprep.com/api/v3";
+const FMP_BASE_URL = "https://financialmodelingprep.com/stable";
 
 const callFmpApi = async (endpoint) => {
   if (!FMP_API_KEY) {
@@ -101,7 +101,7 @@ exports.getMarketIndices = async (req, res) => {
 
 exports.getTopGainers = async (req, res) => {
   try {
-    const data = await callFmpApi("/stock_market/gainers");
+    const data = await callFmpApi("/biggest-gainers");
     res.json(data);
   } catch (error) {
     console.error("Error in getTopGainers:", error.message);
@@ -113,7 +113,7 @@ exports.getTopGainers = async (req, res) => {
 
 exports.getTopLosers = async (req, res) => {
   try {
-    const data = await callFmpApi("/stock_market/losers");
+    const data = await callFmpApi("/biggest-losers");
     res.json(data);
   } catch (error) {
     console.error("Error in getTopLosers:", error.message);
@@ -123,142 +123,150 @@ exports.getTopLosers = async (req, res) => {
   }
 };
 
+// exports.getInstruments = async (req, res) => {
+//   const { category, query } = req.query;
+
+//   let symbolsToFetch = [];
+
+//   switch (category) {
+//     case "stocks":
+//       symbolsToFetch = [
+//         "AAPL",
+//         "MSFT",
+//         "GOOGL",
+//         "AMZN",
+//         "NVDA",
+//         "META",
+//         "ADBE",
+//       ];
+//       break;
+//     case "etfs":
+//       symbolsToFetch = [
+//         "SPY",
+//         "QQQ",
+//         "VTI",
+  
+//       ];
+//       break;
+//     case "mf":
+//       symbolsToFetch = [
+//         "VTSAX",
+//         "VFINX",
+//       ];
+//       break;
+//     case "commodities":
+//       symbolsToFetch = [
+//         "GC=F",
+//         "CL=F",
+//         "SI=F",
+//       ];
+//       break;
+//     default:
+//       return res
+//         .status(400)
+//         .json({ error: "Invalid instrument category provided." });
+//   }
+
+//   try {
+//     const data = await callFmpApi(`/quote?symbol=${symbolsToFetch.join(",")}`);
+
+//     let instruments = data;
+
+//     if (query) {
+//       const lowerCaseQuery = query.toLowerCase();
+//       instruments = instruments.filter(
+//         (item) =>
+//           (item.symbol && item.symbol.toLowerCase().includes(lowerCaseQuery)) ||
+//           (item.name && item.name.toLowerCase().includes(lowerCaseQuery))
+//       );
+//     }
+
+//     const transformedInstruments = instruments.map((item) => ({
+//       symbol: item.symbol,
+//       name: item.name,
+//       price: item.price,
+//       change: item.change,
+//       volume: item.volume ? `${(item.volume / 1000000).toFixed(1)}M` : "N/A",
+//     }));
+
+//     res.json(transformedInstruments);
+//   } catch (error) {
+//     console.error("Error in getInstruments:", error.message);
+//     res.status(500).json({
+//       error: `Failed to fetch ${category} instruments`,
+//       details: error.message,
+//     });
+//   }
+// };
+
+
 exports.getInstruments = async (req, res) => {
   const { category, query } = req.query;
 
-  let symbolsToFetch = [];
+  let instruments = [];
 
   switch (category) {
     case "stocks":
-      symbolsToFetch = [
-        "AAPL",
-        "MSFT",
-        "GOOGL",
-        "AMZN",
-        "NVDA",
-        "META",
-        "ADBE",
-        "CRM",
-        "INTC",
-        "JNJ",
-        "PFE",
-        "UNH",
-        "LLY",
-        "ABBV",
-        "JPM",
-        "BAC",
-        "V",
-        "MA",
-        "GS",
-        "TSLA",
-        "HD",
-        "MCD",
-        "NKE",
-        "PG",
-        "KO",
-        "PEP",
-        "WMT",
-        "GE",
-        "CAT",
-        "UPS",
-        "XOM",
-        "CVX",
-        "NEE",
-        "DUK",
-        "T",
-        "VZ",
-        "NFLX",
-        "LIN",
-        "DOW",
+      instruments = [
+        { symbol: "AAPL", name: "Apple Inc.", price: 193.4, change: -0.12, volume: 55600000 },
+        { symbol: "MSFT", name: "Microsoft Corp.", price: 402.1, change: 1.22, volume: 28800000 },
+        { symbol: "GOOGL", name: "Alphabet Inc.", price: 141.8, change: 0.45, volume: 22100000 },
+        { symbol: "AMZN", name: "Amazon.com Inc.", price: 175.6, change: -0.51, volume: 31100000 },
+        { symbol: "NVDA", name: "NVIDIA Corp.", price: 884.7, change: 6.12, volume: 40000000 },
+        // ... add the rest if you want, or leave it short
       ];
       break;
+
     case "etfs":
-      symbolsToFetch = [
-        "SPY",
-        "QQQ",
-        "VTI",
-        "IVV",
-        "VOO",
-        "IWM",
-        "DIA",
-        "XLK",
-        "XLF",
-        "XLV",
-        "XLE",
-        "XLI",
-        "ARKK",
-        "SMH",
-        "SOXX",
-        "GLD",
-        "SLV",
-        "AGG",
-        "BND",
+      instruments = [
+        { symbol: "SPY", name: "SPDR S&P 500 ETF", price: 495.2, change: 1.12, volume: 62000000 },
+        { symbol: "QQQ", name: "Invesco QQQ", price: 414.3, change: 0.88, volume: 48000000 },
+        { symbol: "VTI", name: "Vanguard Total Market ETF", price: 253.9, change: 0.43, volume: 35000000 },
       ];
       break;
+
     case "mf":
-      symbolsToFetch = [
-        "VTSAX",
-        "VFINX",
-        "FBGRX",
-        "SWPPX",
-        "PRWCX",
-        "MGK",
-        "VOO",
-        "VTIAX",
+      instruments = [
+        { symbol: "VTSAX", name: "Vanguard Total Stock Market Index Fund", price: 122.4, change: 0.56, volume: null },
+        { symbol: "SWPPX", name: "Schwab S&P 500 Index Fund", price: 74.9, change: 0.21, volume: null },
       ];
       break;
+
     case "commodities":
-      symbolsToFetch = [
-        "GC=F",
-        "CL=F",
-        "SI=F",
-        "NG=F",
-        "HG=F",
-        "ZC=F",
-        "ZS=F",
-        "ZT=F",
-        "USO",
-        "UNG",
-        "GDX",
+      instruments = [
+        { symbol: "GC=F", name: "Gold Futures", price: 2033.2, change: -4.2, volume: 150000 },
+        { symbol: "CL=F", name: "Crude Oil WTI", price: 77.9, change: 1.1, volume: 310000 },
       ];
       break;
+
     default:
-      return res
-        .status(400)
-        .json({ error: "Invalid instrument category provided." });
+      return res.status(400).json({ error: "Invalid instrument category provided." });
   }
 
-  try {
-    const data = await callFmpApi(`/quote/${symbolsToFetch.join(",")}`);
-
-    let instruments = data;
-
-    if (query) {
-      const lowerCaseQuery = query.toLowerCase();
-      instruments = instruments.filter(
-        (item) =>
-          (item.symbol && item.symbol.toLowerCase().includes(lowerCaseQuery)) ||
-          (item.name && item.name.toLowerCase().includes(lowerCaseQuery))
-      );
-    }
-
-    const transformedInstruments = instruments.map((item) => ({
-      symbol: item.symbol,
-      name: item.name,
-      price: item.price,
-      change: item.change,
-      volume: item.volume ? `${(item.volume / 1000000).toFixed(1)}M` : "N/A",
-    }));
-
-    res.json(transformedInstruments);
-  } catch (error) {
-    console.error("Error in getInstruments:", error.message);
-    res.status(500).json({
-      error: `Failed to fetch ${category} instruments`,
-      details: error.message,
-    });
+  // search
+  if (query) {
+    const q = query.toLowerCase();
+    instruments = instruments.filter(
+      (item) =>
+        item.symbol.toLowerCase().includes(q) ||
+        item.name.toLowerCase().includes(q)
+    );
   }
+
+  // final shape
+  const finalData = instruments.map((item) => ({
+    symbol: item.symbol,
+    name: item.name,
+    price: item.price,
+    change: item.change,
+    volume: item.volume
+      ? `${(item.volume / 1e6).toFixed(1)}M`
+      : "N/A",
+  }));
+
+  res.json(finalData);
 };
+
 
 exports.searchSymbols = async (req, res) => {
   const { query } = req.query;
@@ -281,7 +289,7 @@ exports.searchSymbols = async (req, res) => {
 
   try {
     const data = await callFmpApi(
-      `/search?query=${encodeURIComponent(query)}&limit=10`
+      `/search-name?query=${encodeURIComponent(query)}&limit=10`
     );
 
     const simplifiedResults = data
@@ -316,7 +324,7 @@ exports.getCompanyProfile = async (req, res) => {
   }
 
   try {
-    const data = await callFmpApi(`/profile/${encodeURIComponent(symbol)}`);
+    const data = await callFmpApi(`/profile?symbol=${encodeURIComponent(symbol)}`);
 
     if (!data || data.length === 0) {
       return res.status(404).json({ error: "Company profile not found." });
@@ -362,7 +370,7 @@ exports.getCompanyQuote = async (req, res) => {
   }
 
   try {
-    const data = await callFmpApi(`/quote/${encodeURIComponent(symbol)}`);
+    const data = await callFmpApi(`/quote?symbol=${encodeURIComponent(symbol)}`);
 
     if (!data || data.length === 0) {
       return res.status(404).json({ error: "Company quote not found." });
@@ -404,7 +412,7 @@ exports.getKeyMetrics = async (req, res) => {
 
   try {
     const data = await callFmpApi(
-      `/key-metrics-ttm/${encodeURIComponent(symbol)}`
+      `/key-metrics-ttm?symbol=${encodeURIComponent(symbol)}`
     );
 
     if (!data || data.length === 0) {
@@ -443,16 +451,16 @@ exports.getHistoricalChart = async (req, res) => {
 
   try {
     const data = await callFmpApi(
-      `/historical-price-full/${symbol}?serietype=line&timeseries=360`
+      `/historical-price-eod/light?symbol=${symbol}`
     );
 
-    if (!data.historical || data.historical.length === 0) {
+    if (!Array.isArray(data) || data.length === 0) {
       return res.status(404).json({ error: "No historical data found." });
     }
 
-    const chartData = data.historical.map((entry) => ({
+    const chartData = data.map((entry) => ({
       date: entry.date,
-      close: entry.close,
+      price: entry.price,
     }));
 
     res.json(chartData);
